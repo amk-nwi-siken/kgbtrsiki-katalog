@@ -4,12 +4,61 @@
     <meta charset="UTF-8">
     <title>kgbtr /b/ - Katalog</title>
     <style>
-        body { background: #f0e0c0; color: #4a2c00; font-family: "Trebuchet MS", sans-serif; font-size: 13px; margin: 0; padding: 15px; }
-        .top-bar { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #4a2c00; padding-bottom: 10px; margin-bottom: 20px; }
-        .back-btn { text-decoration: none; color: #4a2c00; font-weight: bold; background: #e8d5b0; padding: 5px 10px; border: 1px solid #4a2c00; border-radius: 3px; }
-        .back-btn:hover { background: #dfc8a0; }
-        #katalog-baslik { text-transform: uppercase; margin: 0; }
-        .content-area { text-align: center; margin-top: 50px; }
+        body {
+    margin: 0;
+    padding: 15px;
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 13px;
+    color: #f2f2f2;
+    background: linear-gradient(135deg, #000000, #1a0033, #000000);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 25px;
+    padding: 15px;
+    border-bottom: 1px solid #3b1f5c;
+    background: rgba(20, 0, 40, 0.5);
+    border-radius: 8px;
+}
+
+.header h1 {
+    margin: 0;
+    color: #d18cff;
+}
+
+.catalog {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    max-width: 1000px;
+    margin: auto;
+}
+
+.board {
+    background: rgba(15, 0, 30, 0.85);
+    border: 1px solid #3b1f5c;
+    padding: 12px;
+    width: 200px;
+    text-decoration: none;
+    color: #ffffff;
+    border-radius: 10px;
+    text-align: center;
+    transition: 0.2s;
+}
+
+.board:hover {
+    background: rgba(60, 0, 90, 0.9);
+    transform: scale(1.03);
+    border-color: #d18cff;
+}
+
+.board h2 {
+    margin: 0;
+    font-size: 16px;
+    color: #d18cff;
+}
     </style>
 </head>
 <body>
