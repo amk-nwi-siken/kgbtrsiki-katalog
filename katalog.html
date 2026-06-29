@@ -98,29 +98,30 @@
     }
 
     function loadPosts() {
-        db.ref("posts/" + kategori).on("value", (snap) => {
-            const postsDiv = document.getElementById("posts");
-            postsDiv.innerHTML = "";
-            const data = snap.val();
-            if (!data) return;
+    db.ref("posts/" + kategori).on("value", (snap) => {
+        const postsDiv = document.getElementById("posts");
+        postsDiv.innerHTML = "";
+        const data = snap.val();
+        if (!data) return;
 
-            Object.entries(data).reverse().forEach(([id, p]) => {
-                let mediaHTML = p.content || "";
+        Object.entries(data).reverse().forEach(([id, p]) => {
+            let mediaHTML = p.content || "";
 
-                if (mediaHTML.includes("pixeldrain.com") && !mediaHTML.includes("<iframe")) {
-                    mediaHTML = `<iframe src="${mediaHTML}" allowfullscreen></iframe>`;
-                }
+            // Pixeldrain embed kodunu temizle ve göster
+            if (mediaHTML.includes("<iframe")) {
+                mediaHTML = mediaHTML.replace(/style="[^"]*"/g, 'style="width:100%; max-width:800px; height:480px; border:none; border-radius:8px;"');
+            }
 
-                postsDiv.innerHTML += `
-                    <div class="post">
-                        <span class="delete-btn" onclick="deletePost('${id}')">[SİL]</span>
-                        <h3>${p.title}</h3>
-                        <div class="media-container">${mediaHTML}</div>
-                        <small>${p.time || ''}</small>
-                    </div>`;
-            });
+            postsDiv.innerHTML += `
+                <div class="post">
+                    <span class="delete-btn" onclick="deletePost('${id}')">[SİL]</span>
+                    <h3>${p.title}</h3>
+                    <div class="media-container">${mediaHTML}</div>
+                    <small>${p.time || ''}</small>
+                </div>`;
         });
-    }
+    });
+}
 
     function deletePost(id) {
         if (confirm("Silinsin mi?")) db.ref("posts/" + kategori + "/" + id).remove();
