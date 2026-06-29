@@ -4,17 +4,55 @@
     <meta charset="UTF-8">
     <title>kgbtr - Katalog</title>
     <style>
-        body { margin: 0; padding: 20px; font-family: "Segoe UI", Arial, sans-serif; font-size: 14px; color: #ccc; background: #1a1a1d; }
-        .top-bar { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #4a148c; padding-bottom: 10px; }
+        body { 
+            margin: 0; padding: 20px; 
+            font-family: "Segoe UI", Arial, sans-serif; 
+            font-size: 14px; color: #ccc; 
+            background: #1a1a1d; 
+        }
+        .top-bar { 
+            text-align: center; margin-bottom: 20px; 
+            border-bottom: 2px solid #4a148c; padding-bottom: 10px; 
+        }
         .top-bar a { color: #bb86fc; text-decoration: none; font-weight: bold; }
-        #post-form { background: #252529; padding: 20px; border-radius: 8px; max-width: 600px; margin: 0 auto 20px auto; border: 1px solid #333; }
-        input { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; background: #121212; border: 1px solid #444; color: #fff; border-radius: 4px; }
-        button { background: #6200ee; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; width: 100%; }
-        .post { border: 1px solid #333; margin: 10px auto; padding: 15px; border-radius: 5px; background: #252529; max-width: 700px; }
+        
+        #post-form { 
+            background: #252529; padding: 20px; border-radius: 8px; 
+            max-width: 600px; margin: 0 auto 20px auto; 
+            border: 1px solid #333; 
+        }
+        input, textarea { 
+            width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; 
+            background: #121212; border: 1px solid #444; 
+            color: #fff; border-radius: 4px; 
+        }
+        button { 
+            background: #6200ee; color: white; border: none; 
+            padding: 10px 20px; border-radius: 4px; cursor: pointer; 
+            width: 100%; 
+        }
+        .post { 
+            border: 1px solid #333; margin: 15px auto; 
+            padding: 15px; border-radius: 5px; 
+            background: #252529; max-width: 800px; 
+        }
         .post h3 { margin: 0 0 10px 0; color: #e1bee7; }
         .media-container { margin-top: 10px; overflow: hidden; }
-        .delete-btn { color: #cf6679; font-size: 11px; cursor: pointer; float: right; }
-        .comment { font-size: 12px; margin: 5px 0; padding: 5px; border-left: 2px solid #6200ee; background: #1f1f23; }
+        .media-container iframe {
+            width: 100%;
+            max-width: 800px;
+            height: 480px;
+            border: none;
+            border-radius: 6px;
+            background: #000;
+        }
+        .delete-btn { 
+            color: #cf6679; font-size: 11px; cursor: pointer; float: right; 
+        }
+        .comment { 
+            font-size: 12px; margin: 5px 0; padding: 5px; 
+            border-left: 2px solid #6200ee; background: #1f1f23; 
+        }
     </style>
 </head>
 <body>
@@ -26,7 +64,7 @@
 
 <div id="post-form">
     <input id="title" placeholder="Konu Başlığı..." maxlength="100">
-    <input id="mediaUrl" placeholder="Link veya Embed kodu yapıştır...">
+    <textarea id="mediaUrl" rows="3" placeholder="Embed kodunu buraya yapıştır..."></textarea>
     <button id="sendBtn" onclick="send()">Gönder</button>
 </div>
 
@@ -51,16 +89,18 @@
     function send() {
         const title = document.getElementById("title").value.trim();
         const content = document.getElementById("mediaUrl").value.trim();
+        
         if (!title) return alert("Başlık şart!");
+        if (!content) return alert("Embed kodunu yapıştır amk!");
 
         db.ref("posts/" + kategori).push({
             title: title,
             content: content,
-            time: new Date().toLocaleTimeString("tr-TR")
+            time: new Date().toLocaleString("tr-TR")
         }).then(() => {
             document.getElementById("title").value = "";
             document.getElementById("mediaUrl").value = "";
-        });
+        }).catch(err => alert("Hata: " + err.message));
     }
 
     function addReply(id) {
@@ -73,7 +113,8 @@
     }
 
     function deletePost(id) {
-        if(confirm("Silmek istediğine emin misin?")) db.ref("posts/" + kategori + "/" + id).remove();
+        if(confirm("Silmek istediğine emin misin?")) 
+            db.ref("posts/" + kategori + "/" + id).remove();
     }
 
     function loadPosts() {
@@ -84,20 +125,21 @@
             if (!data) return;
 
             Object.entries(data).reverse().forEach(([id, p]) => {
-                let media = "";
-                if (p.content.includes("<iframe")) {
-                    media = p.content;
-                } else if (p.content.includes("streamable.com")) {
-                    media = `<iframe src="${p.content}" width="100%" height="300" frameborder="0" allowfullscreen></iframe>`;
-                } else if (p.content.match(/\.(jpeg|jpg|gif|png)$/)) {
-                    media = `<img src="${p.content}" style="width:100%; border-radius:4px;">`;
+                let media = p.content || "";
+
+                // Pixeldrain iframe ise direkt göster
+                if (media.includes("<iframe")) {
+                    media = media; // zaten iframe ise olduğu gibi
+                } 
+                // Sadece link gelirse iframe'e çevir
+                else if (media.includes("pixeldrain.com")) {
+                    media = `<iframe src="${media}" allowfullscreen></iframe>`;
                 }
 
-                // Yorumları hazırla
                 let commentsHtml = "";
                 if (p.comments) {
                     Object.values(p.comments).forEach(c => {
-                        commentsHtml += `<div class="comment">> ${c.text} <small style="color:#666">(${c.time})</small></div>`;
+                        commentsHtml += `<div class="comment">> ${c.text} <small>(${c.time})</small></div>`;
                     });
                 }
 
@@ -108,7 +150,7 @@
                         <div class="media-container">${media}</div>
                         <div style="margin:10px 0;">${commentsHtml}</div>
                         <input id="reply-${id}" placeholder="Cevap yaz..." style="width:70%;">
-                        <button onclick="addReply('${id}')" style="width:25%; padding:10px;">Yanıtla</button>
+                        <button onclick="addReply('${id}')" style="width:25%; padding:8px;">Yanıtla</button>
                         <br><small style="color:#666">${p.time}</small>
                     </div>`;
             });
