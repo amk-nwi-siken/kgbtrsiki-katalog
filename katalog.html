@@ -87,21 +87,27 @@
     document.getElementById("katalog-baslik").innerText = "/" + kategori + "/";
 
     function send() {
-        const title = document.getElementById("title").value.trim();
-        const content = document.getElementById("mediaUrl").value.trim();
-        
-        if (!title) return alert("Başlık şart!");
-        if (!content) return alert("Embed kodunu yapıştır amk!");
+    const title = document.getElementById("title").value.trim();
+    const content = document.getElementById("mediaUrl").value.trim();
+    
+    if (!title || !content) return alert("Boş bırakma amk!");
 
+    // Test için
+    db.ref("test/" + Date.now()).set({ msg: "test" })
+    .then(() => {
+        alert("Test başarılı, şimdi asıl veriyi yazıyorum");
+        
         db.ref("posts/" + kategori).push({
             title: title,
             content: content,
             time: new Date().toLocaleString("tr-TR")
-        }).then(() => {
-            document.getElementById("title").value = "";
-            document.getElementById("mediaUrl").value = "";
-        }).catch(err => alert("Hata: " + err.message));
-    }
+        });
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Hata: " + err.message);
+    });
+}
 
     function addReply(id) {
         const replyText = document.getElementById("reply-" + id).value.trim();
