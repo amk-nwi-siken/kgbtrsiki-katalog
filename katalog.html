@@ -66,8 +66,16 @@
         <a href="index.html" class="back-btn">← GERİ DÖN</a>
         <h1 id="katalog-baslik">YÜKLENİYOR...</h1>
     </div>
-    <div class="content-area">
-        <p>Bu kategoriye ait içerikler buraya gelecek.</p>
+   <div class="content-area">
+
+    <div style="margin:20px auto; text-align:center;">
+        <input id="title" placeholder="Konu başlığı"
+            style="padding:8px; width:200px;">
+        <button onclick="send()">Konu aç</button>
+    </div>
+
+    <div id="posts"></div>
+
     </div>
     <script>
         // URL'den kategori bilgisini al
@@ -81,6 +89,33 @@
         } else {
             document.getElementById('katalog-baslik').innerText = 'KATALOG HATASI';
         }
+
+        function send() {
+    const title = document.getElementById("title").value;
+    if (!title) return;
+
+    const id = Date.now(); // konu ID
+
+    const posts = document.getElementById("posts");
+
+    const div = document.createElement("div");
+    div.style.border = "1px solid #3b1f5c";
+    div.style.margin = "10px";
+    div.style.padding = "10px";
+    div.style.borderRadius = "8px";
+    div.style.background = "rgba(20,0,40,0.3)";
+
+    div.innerHTML = `
+        <a href="thread.html?id=${id}&title=${encodeURIComponent(title)}"
+           style="color:#d18cff; text-decoration:none;">
+           <h3 style="margin:0;">${title}</h3>
+        </a>
+    `;
+
+    posts.prepend(div);
+
+    document.getElementById("title").value = "";
+}
     </script>
 </body>
 </html>
