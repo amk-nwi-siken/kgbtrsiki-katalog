@@ -4,26 +4,30 @@
     <meta charset="UTF-8">
     <title>kgbtr - Katalog</title>
     <style>
-        body { margin: 0; padding: 15px; font-family: "Trebuchet MS", Arial, sans-serif; font-size: 13px; color: #f2f2f2; background: linear-gradient(135deg, #000000, #1a0033, #000000); }
-        .top-bar { text-align: center; margin-bottom: 25px; padding: 15px; border-bottom: 1px solid #3b1f5c; background: rgba(20, 0, 40, 0.7); border-radius: 8px; }
-        .top-bar a { color: #d18cff; text-decoration: none; font-weight: bold; }
-        input { padding: 10px; width: 280px; background: rgba(0,0,0,0.5); border: 1px solid #3b1f5c; color: #fff; border-radius: 6px; }
-        button { padding: 10px 18px; background: #6b1f9e; color: white; border: none; border-radius: 6px; cursor: pointer; }
-        button:hover { background: #8b2ecc; }
-        .post { border: 1px solid #3b1f5c; margin: 12px auto; padding: 12px; border-radius: 8px; background: rgba(20, 0, 40, 0.4); max-width: 800px; }
-        .post h3 { margin: 0 0 8px 0; color: #d18cff; }
+        body { margin: 0; padding: 20px; font-family: "Segoe UI", Arial, sans-serif; font-size: 14px; color: #ccc; background: #1a1a1d; }
+        .top-bar { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #4a148c; padding-bottom: 10px; }
+        .top-bar a { color: #bb86fc; text-decoration: none; font-weight: bold; }
+        #post-form { background: #252529; padding: 20px; border-radius: 8px; max-width: 600px; margin: 0 auto 20px auto; border: 1px solid #333; }
+        input { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; background: #121212; border: 1px solid #444; color: #fff; border-radius: 4px; }
+        button { background: #6200ee; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; width: 100%; }
+        .post { border: 1px solid #333; margin: 10px auto; padding: 15px; border-radius: 5px; background: #252529; max-width: 700px; }
+        .post h3 { margin: 0 0 10px 0; color: #e1bee7; }
+        .media-container { margin-top: 10px; overflow: hidden; }
+        .delete-btn { color: #cf6679; font-size: 11px; cursor: pointer; float: right; }
+        .comment { font-size: 12px; margin: 5px 0; padding: 5px; border-left: 2px solid #6200ee; background: #1f1f23; }
     </style>
 </head>
 <body>
 
 <div class="top-bar">
-    <a href="index.html">← GERİ DÖN</a>
-    <h1 id="katalog-baslik">KATALOG</h1>
+    <a href="index.html">← ANA SAYFA</a>
+    <h1 id="katalog-baslik">/b/</h1>
 </div>
 
-<div style="margin:20px auto; text-align:center;">
-    <input id="title" placeholder="Konu başlığı..." maxlength="120">
-    <button id="sendBtn" onclick="send()">Konu Aç</button>
+<div id="post-form">
+    <input id="title" placeholder="Konu Başlığı..." maxlength="100">
+    <input id="mediaUrl" placeholder="Link veya Embed kodu yapıştır...">
+    <button id="sendBtn" onclick="send()">Gönder</button>
 </div>
 
 <div id="posts"></div>
@@ -33,58 +37,80 @@
 
 <script>
     const firebaseConfig = {
-        apiKey: "BURAYA_GERCEK_API_KEY", // Burayı kendi keyinle değiştir
+        apiKey: "BURAYA_GERCEK_API_KEY",
         authDomain: "kgbtr-siki-91359.firebaseapp.com",
         databaseURL: "https://kgbtr-siki-91359-default-rtdb.firebaseio.com",
         projectId: "kgbtr-siki-91359"
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const kategori = urlParams.get("kategori") || "b";
+    const kategori = new URLSearchParams(window.location.search).get("kategori") || "b";
     document.getElementById("katalog-baslik").innerText = "/" + kategori + "/";
 
     function send() {
-        const input = document.getElementById("title");
-        const btn = document.getElementById("sendBtn");
-        const title = input.value.trim();
+        const title = document.getElementById("title").value.trim();
+        const content = document.getElementById("mediaUrl").value.trim();
+        if (!title) return alert("Başlık şart!");
 
-        if (!title) return alert("Başlık girin!");
-
-        btn.disabled = true;
-        btn.innerText = "Gönderiliyor...";
-
-        // .set yerine .push kullanıyoruz (daha güvenli)
         db.ref("posts/" + kategori).push({
             title: title,
-            time: new Date().toLocaleString("tr-TR")
+            content: content,
+            time: new Date().toLocaleTimeString("tr-TR")
         }).then(() => {
-            input.value = "";
-            btn.disabled = false;
-            btn.innerText = "Konu Aç";
-        }).catch((err) => {
-            console.error(err);
-            alert("Hata: " + err.message);
-            btn.disabled = false;
-            btn.innerText = "Konu Aç";
+            document.getElementById("title").value = "";
+            document.getElementById("mediaUrl").value = "";
         });
     }
 
+    function addReply(id) {
+        const replyText = document.getElementById("reply-" + id).value.trim();
+        if (!replyText) return;
+        db.ref("posts/" + kategori + "/" + id + "/comments").push({
+            text: replyText,
+            time: new Date().toLocaleTimeString("tr-TR")
+        }).then(() => document.getElementById("reply-" + id).value = "");
+    }
+
+    function deletePost(id) {
+        if(confirm("Silmek istediğine emin misin?")) db.ref("posts/" + kategori + "/" + id).remove();
+    }
+
     function loadPosts() {
-        const postsDiv = document.getElementById("posts");
         db.ref("posts/" + kategori).on("value", (snap) => {
+            const postsDiv = document.getElementById("posts");
             postsDiv.innerHTML = "";
             const data = snap.val();
-            if (!data) return postsDiv.innerHTML = "<p style='text-align:center'>Henüz konu yok</p>";
+            if (!data) return;
 
-            // Verileri tersine çevirip ekrana bas
-            Object.values(data).reverse().forEach(p => {
-                const div = document.createElement("div");
-                div.className = "post";
-                div.innerHTML = `<h3>${p.title}</h3><small>${p.time}</small>`;
-                postsDiv.appendChild(div);
+            Object.entries(data).reverse().forEach(([id, p]) => {
+                let media = "";
+                if (p.content.includes("<iframe")) {
+                    media = p.content;
+                } else if (p.content.includes("streamable.com")) {
+                    media = `<iframe src="${p.content}" width="100%" height="300" frameborder="0" allowfullscreen></iframe>`;
+                } else if (p.content.match(/\.(jpeg|jpg|gif|png)$/)) {
+                    media = `<img src="${p.content}" style="width:100%; border-radius:4px;">`;
+                }
+
+                // Yorumları hazırla
+                let commentsHtml = "";
+                if (p.comments) {
+                    Object.values(p.comments).forEach(c => {
+                        commentsHtml += `<div class="comment">> ${c.text} <small style="color:#666">(${c.time})</small></div>`;
+                    });
+                }
+
+                postsDiv.innerHTML += `
+                    <div class="post" id="${id}">
+                        <span class="delete-btn" onclick="deletePost('${id}')">[SİL]</span>
+                        <h3>${p.title}</h3>
+                        <div class="media-container">${media}</div>
+                        <div style="margin:10px 0;">${commentsHtml}</div>
+                        <input id="reply-${id}" placeholder="Cevap yaz..." style="width:70%;">
+                        <button onclick="addReply('${id}')" style="width:25%; padding:10px;">Yanıtla</button>
+                        <br><small style="color:#666">${p.time}</small>
+                    </div>`;
             });
         });
     }
