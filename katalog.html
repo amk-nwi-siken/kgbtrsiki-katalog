@@ -2,120 +2,94 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>kgbtr /b/ - Katalog</title>
+    <title>kgbtr - Katalog</title>
     <style>
-        body {
-    margin: 0;
-    padding: 15px;
-    font-family: "Trebuchet MS", sans-serif;
-    font-size: 13px;
-    color: #f2f2f2;
-    background: linear-gradient(135deg, #000000, #1a0033, #000000);
-}
-
-.header {
-    text-align: center;
-    margin-bottom: 25px;
-    padding: 15px;
-    border-bottom: 1px solid #3b1f5c;
-    background: rgba(20, 0, 40, 0.5);
-    border-radius: 8px;
-}
-
-.header h1 {
-    margin: 0;
-    color: #d18cff;
-}
-
-.catalog {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
-    max-width: 1000px;
-    margin: auto;
-}
-
-.board {
-    background: rgba(15, 0, 30, 0.85);
-    border: 1px solid #3b1f5c;
-    padding: 12px;
-    width: 200px;
-    text-decoration: none;
-    color: #ffffff;
-    border-radius: 10px;
-    text-align: center;
-    transition: 0.2s;
-}
-
-.board:hover {
-    background: rgba(60, 0, 90, 0.9);
-    transform: scale(1.03);
-    border-color: #d18cff;
-}
-
-.board h2 {
-    margin: 0;
-    font-size: 16px;
-    color: #d18cff;
-}
+        body { margin: 0; padding: 15px; font-family: "Trebuchet MS", Arial, sans-serif; font-size: 13px; color: #f2f2f2; background: linear-gradient(135deg, #000000, #1a0033, #000000); }
+        .top-bar { text-align: center; margin-bottom: 25px; padding: 15px; border-bottom: 1px solid #3b1f5c; background: rgba(20, 0, 40, 0.7); border-radius: 8px; }
+        .top-bar a { color: #d18cff; text-decoration: none; font-weight: bold; }
+        input { padding: 10px; width: 280px; background: rgba(0,0,0,0.5); border: 1px solid #3b1f5c; color: #fff; border-radius: 6px; }
+        button { padding: 10px 18px; background: #6b1f9e; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #8b2ecc; }
+        .post { border: 1px solid #3b1f5c; margin: 12px auto; padding: 12px; border-radius: 8px; background: rgba(20, 0, 40, 0.4); max-width: 800px; }
+        .post h3 { margin: 0 0 8px 0; color: #d18cff; }
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        <a href="index.html" class="back-btn">← GERİ DÖN</a>
-        <h1 id="katalog-baslik">YÜKLENİYOR...</h1>
-    </div>
-   <div class="content-area">
 
-    <div style="margin:20px auto; text-align:center;">
-        <input id="title" placeholder="Konu başlığı"
-            style="padding:8px; width:200px;">
-        <button onclick="send()">Konu aç</button>
-    </div>
+<div class="top-bar">
+    <a href="index.html">← GERİ DÖN</a>
+    <h1 id="katalog-baslik">KATALOG</h1>
+</div>
 
-    <div id="posts"></div>
+<div style="margin:20px auto; text-align:center;">
+    <input id="title" placeholder="Konu başlığı..." maxlength="120">
+    <button id="sendBtn" onclick="send()">Konu Aç</button>
+</div>
 
-    </div>
-    <script>
-        // URL'den kategori bilgisini al
-        const urlParams = new URLSearchParams(window.location.search);
-        const kategori = urlParams.get('kategori');
-        
-        // Başlığı güncelle
-        if(kategori) {
-            document.getElementById('katalog-baslik').innerText = '/' + kategori + '/';
-            document.title = 'kgbtr /' + kategori + '/';
-        } else {
-            document.getElementById('katalog-baslik').innerText = 'KATALOG HATASI';
-        }
+<div id="posts"></div>
 
-        function send() {
-    const title = document.getElementById("title").value;
-    if (!title) return;
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-    const id = Date.now(); // konu ID
+<script>
+    const firebaseConfig = {
+        apiKey: "BURAYA_GERCEK_API_KEY", // Burayı kendi keyinle değiştir
+        authDomain: "kgbtr-siki-91359.firebaseapp.com",
+        databaseURL: "https://kgbtr-siki-91359-default-rtdb.firebaseio.com",
+        projectId: "kgbtr-siki-91359"
+    };
 
-    const posts = document.getElementById("posts");
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    const div = document.createElement("div");
-    div.style.border = "1px solid #3b1f5c";
-    div.style.margin = "10px";
-    div.style.padding = "10px";
-    div.style.borderRadius = "8px";
-    div.style.background = "rgba(20,0,40,0.3)";
+    const urlParams = new URLSearchParams(window.location.search);
+    const kategori = urlParams.get("kategori") || "b";
+    document.getElementById("katalog-baslik").innerText = "/" + kategori + "/";
 
-    div.innerHTML = `
-        <a href="thread.html?id=${id}&title=${encodeURIComponent(title)}"
-           style="color:#d18cff; text-decoration:none;">
-           <h3 style="margin:0;">${title}</h3>
-        </a>
-    `;
+    function send() {
+        const input = document.getElementById("title");
+        const btn = document.getElementById("sendBtn");
+        const title = input.value.trim();
 
-    posts.prepend(div);
+        if (!title) return alert("Başlık girin!");
 
-    document.getElementById("title").value = "";
-}
-    </script>
+        btn.disabled = true;
+        btn.innerText = "Gönderiliyor...";
+
+        // .set yerine .push kullanıyoruz (daha güvenli)
+        db.ref("posts/" + kategori).push({
+            title: title,
+            time: new Date().toLocaleString("tr-TR")
+        }).then(() => {
+            input.value = "";
+            btn.disabled = false;
+            btn.innerText = "Konu Aç";
+        }).catch((err) => {
+            console.error(err);
+            alert("Hata: " + err.message);
+            btn.disabled = false;
+            btn.innerText = "Konu Aç";
+        });
+    }
+
+    function loadPosts() {
+        const postsDiv = document.getElementById("posts");
+        db.ref("posts/" + kategori).on("value", (snap) => {
+            postsDiv.innerHTML = "";
+            const data = snap.val();
+            if (!data) return postsDiv.innerHTML = "<p style='text-align:center'>Henüz konu yok</p>";
+
+            // Verileri tersine çevirip ekrana bas
+            Object.values(data).reverse().forEach(p => {
+                const div = document.createElement("div");
+                div.className = "post";
+                div.innerHTML = `<h3>${p.title}</h3><small>${p.time}</small>`;
+                postsDiv.appendChild(div);
+            });
+        });
+    }
+
+    window.onload = loadPosts;
+</script>
 </body>
 </html>
